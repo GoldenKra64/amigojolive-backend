@@ -14,7 +14,7 @@ const router = express.Router();
 router.post(
   "/",
   authMiddleware,
-  requireRole("docente"),
+  requireRole("docente", "admin"),
   upload.array("files"),
   validatePublicationFiles,
   validateDto(createPublicationDto),
@@ -38,7 +38,7 @@ router.get(
 router.put(
   "/:id",
   authMiddleware,
-  requireRole("docente"),
+  requireRole("docente", "admin"),
   upload.array("files"),
   validatePublicationFiles,
   validateDto(updatePublicationDto),
@@ -48,7 +48,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  requireRole("docente"),
+  requireRole("docente", "admin"),
   publicationController.deletePublication
 );
 

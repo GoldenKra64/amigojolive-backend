@@ -147,7 +147,6 @@ model Comment {
 model Tag {
   id          Int      @id @default(autoincrement())
   name        String   @unique // Las diferentes etiquetas, que todavia esta por definir
-  
   posts       Post[]   // Relación Muchos a Muchos para etiquetar los post
 
   @@map("etiquetas")

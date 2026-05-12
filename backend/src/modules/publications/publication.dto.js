@@ -11,7 +11,7 @@ const createPublicationDto = z.object({
     .string()
     .trim()
     .min(1, "El contenido es obligatorio"),
-
+      
   isAnonymous: z
     .union([
       z.boolean(),
@@ -20,6 +20,8 @@ const createPublicationDto = z.object({
       )
     ])
     .optional(),
+
+    tags: z.array(z.number()),
 });
 
 const updatePublicationDto = z.object({
@@ -45,6 +47,8 @@ const updatePublicationDto = z.object({
     "ARCHIVED",
     "HIDDEN",
   ]).optional(),
+
+  tags: z.array(z.number()),
 });
 
 module.exports = {
