@@ -7,7 +7,9 @@ async function createPublication(req, res, next) {
       title: req.body.title,
       content: req.body.content,
       isAnonymous: req.body.isAnonymous,
-      authorId: req.user.id
+      tagIds: req.body.tags,
+      authorId: req.user.id,
+      files: req.files || [],
     });
 
     return res.status(201).json(new ApiResponse(true, 201, "Publicación creada correctamente", publication));

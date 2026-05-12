@@ -12,6 +12,7 @@ function mapPostToResponse(post) {
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     attachments: post.attachments,
+    tags: post.tags ?? [],
     author: shouldHideAuthor
       ? {
           id: null,
@@ -30,13 +31,32 @@ function mapPostToResponse(post) {
   };
 }
 
-async function createPublication({ title, content, isAnonymous, authorId }) {
+function mapFileToAttachment(file) {
+  return {
+    filename: file.filename,
+    originalName: file.originalname,
+    mimeType: file.mimetype,
+    path: file.path,
+    size: file.size,
+    type: file.mimetype.startsWith("image/") ? "IMAGE" : "DOCUMENT",
+  };
+}
+
+async function createPublication({ title, content, isAnonymous, authorId, files = [], tagIds }) {
   const post = await prisma.post.create({
     data: {
       title: title.trim(),
       content: content.trim(),
       isAnonymous: isAnonymous ?? false,
       authorId,
+      attachments: {
+        create: files.map(mapFileToAttachment),
+      },
+      ...(tagIds !== undefined && {
+        tags: {
+          connect: tagIds.map(id => ({ id })),
+        },
+      }),
     },
     include: {
       author: {
@@ -44,6 +64,8 @@ async function createPublication({ title, content, isAnonymous, authorId }) {
           role: true,
         },
       },
+      attachments: true,
+      tags: true,
     },
   });
 
@@ -65,6 +87,7 @@ async function getPublicationFeed() {
         },
       },
       attachments: true,
+      tags: true,
     },
   });
 
@@ -99,6 +122,11 @@ async function updatePublication(id, userId, data) {
   if (data.content !== undefined) updateData.content = data.content.trim();
   if (data.isAnonymous !== undefined) updateData.isAnonymous = data.isAnonymous;
   if (data.status !== undefined) updateData.status = data.status;
+  if (data.tags !== undefined) {
+    updateData.tags = {
+      set: data.tags.map(id => ({ id })),
+    };
+  }
 
   const post = await prisma.post.update({
     where: { id },
@@ -110,6 +138,7 @@ async function updatePublication(id, userId, data) {
         },
       },
       attachments: true,
+      tags: true,
     },
   });
 
@@ -143,6 +172,7 @@ async function deletePublication(id, userId) {
     where: { id },
     data: {
       deletedAt: new Date(),
+      status: "HIDDEN",
     },
   });
 
