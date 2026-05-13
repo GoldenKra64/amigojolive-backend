@@ -30,7 +30,12 @@ export default function FeedPage() {
     if (!title || !content) return;
 
     try {
-      await createPublication({ title, content });
+      await createPublication({
+        title,
+        content,
+        isAnonymous: false,
+        tags: [],
+      });
       setTitle('');
       setContent('');
       await fetchPublications();
@@ -86,7 +91,7 @@ export default function FeedPage() {
             <div key={pub.id} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
               <h2 className="text-xl font-semibold text-slate-900">{pub.title}</h2>
               <p className="text-xs text-slate-500 mb-4">
-                Por {pub.authorName} el {new Date(pub.createdAt).toLocaleDateString()}
+                Por {pub.author.firstName} {pub.author.lastName} el {new Date(pub.createdAt).toLocaleDateString()}
               </p>
               {/* INTENCIONALMENTE VULNERABLE: Uso de dangerouslySetInnerHTML para PoC de XSS */}
               <div

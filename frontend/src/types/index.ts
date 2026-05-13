@@ -93,18 +93,31 @@ export interface UpdateProfilePayload {
   photoUrl?: string;
 }
 
+export interface PublicationAuthor {
+  id: number | null;
+  firstName: string;
+  lastName: string;
+  institutionalEmail: string | null;
+  role: string | null;
+}
+
 export interface Publication {
   id: number;
   title: string;
   content: string;
-  authorId: number;
-  authorName: string;
+  isAnonymous: boolean;
+  status: string;
   createdAt: string;
+  updatedAt: string;
+  author: PublicationAuthor;
+  tags: any[];
 }
 
 export interface CreatePublicationPayload {
   title: string;
   content: string;
+  isAnonymous: boolean;
+  tags: number[];
 }
 
 export interface ApiResponse<T> {
