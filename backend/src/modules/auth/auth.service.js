@@ -155,10 +155,38 @@ async function login(data) {
 
 async function getMe(userId) {
   const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    }
+    where: { id: userId },
+    include: {
+      role: true,
+      teacherProfile: true,
+    },
   });
+
+  if (!user) {
+    return null;
+  }
+
+  const profile = user.teacherProfile
+    ? {
+        id: user.teacherProfile.id,
+        userId: user.teacherProfile.userId,
+        area: user.teacherProfile.area,
+        description: user.teacherProfile.description,
+        photoUrl: user.teacherProfile.photoUrl,
+        createdAt: user.teacherProfile.createdAt,
+        updatedAt: user.teacherProfile.updatedAt,
+      }
+    : null;
+
+  return {
+    id: user.id,
+    institutionalEmail: user.institutionalEmail,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    status: user.status,
+    role: user.role.name,
+    profile,
+  };
 }
 module.exports = {
   createRegistrationRequest,
