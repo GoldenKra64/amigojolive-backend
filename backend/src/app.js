@@ -15,7 +15,7 @@ app.use(
   "/public",
   express.static(PUBLIC_DIR, {
     setHeaders(res, filePath) {
-      if (filePath.endsWith(".pdf")) {
+      if (filePath.includes(`${path.sep}documents${path.sep}`)) {
         res.setHeader("Content-Disposition", "attachment");
       }
       res.setHeader("Cache-Control", "public, max-age=86400");

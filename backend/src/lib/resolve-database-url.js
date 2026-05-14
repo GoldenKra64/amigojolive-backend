@@ -66,8 +66,8 @@ function resolvePostgresConnectionString() {
     [
       "No hay una cadena de conexión PostgreSQL válida.",
       'Revise DIRECT_URL / DATABASE_URL en backend/.env (DATABASE_APP_URL con valor placeholder como "postgresql://ruta" se ignora).',
-      'Desarrollo local: copie backend/.env.example a backend/.env, arranque PostgreSQL',
-      '("docker compose up -d postgres" desde la raíz del repo), y ejecute prisma migrate + seed.',
+      "Si usa Supabase, pegue aqui su cadena remota real.",
+      "Docker solo es necesario si quiere una base local.",
     ].join(" ")
   );
 }

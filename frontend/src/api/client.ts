@@ -12,6 +12,22 @@ const baseURL =
       ? '/api/v1'
       : 'http://localhost:3000/api/v1';
 
+export function getPublicFilesBaseUrl(): string {
+  if (envUrlRaw && envUrlRaw.length > 0) {
+    return envUrlRaw.replace(/\/api\/v1\/?$/, '');
+  }
+
+  if (import.meta.env.DEV) {
+    return '';
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+
+  return 'http://localhost:3000';
+}
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL,
   timeout: 30_000,
@@ -27,6 +43,17 @@ apiClient.interceptors.request.use((config) => {
     path.includes('/auth/register-request');
 
   config.headers = config.headers ?? {};
+
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    if (typeof config.headers.setContentType === 'function') {
+      config.headers.setContentType(undefined);
+    }
+    if (typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type');
+    } else {
+      delete (config.headers as Record<string, unknown>)['Content-Type'];
+    }
+  }
 
   if (isPublicAuth) {
     delete config.headers.Authorization;
@@ -72,7 +99,7 @@ export function extractErrorMessage(
     if (data?.message) {
       const msg = data.message.trim();
       if (msg.includes('Invalid `prisma.') && msg.includes('invocation')) {
-        return 'Error del servidor relacionado con la base de datos. Revise backend/.env y que PostgreSQL esté en ejecución (por ejemplo Docker: docker compose up -d postgres).';
+        return 'Error del servidor relacionado con la base de datos. Revise `backend/.env` y la conexion PostgreSQL configurada. Docker solo hace falta si quiere una base local.';
       }
       return msg;
     }

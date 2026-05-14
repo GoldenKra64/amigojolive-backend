@@ -27,6 +27,8 @@ export default function CreatePublicationModal({
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
 
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf', '.xls', '.xlsx'];
+
   useEffect(() => {
     if (!open) return;
     getCategories()
@@ -45,7 +47,6 @@ export default function CreatePublicationModal({
     const selected = Array.from(e.target.files);
     setFiles(selected);
 
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
     const invalid = selected.filter((file) => {
       const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
       return !allowedExtensions.includes(ext);
@@ -53,7 +54,7 @@ export default function CreatePublicationModal({
 
     setFileError(
       invalid.length > 0
-        ? `Tipo no permitido: ${invalid.map((f) => f.name).join(', ')}. Solo se aceptan JPG, PNG y PDF.`
+        ? `Tipo no permitido: ${invalid.map((f) => f.name).join(', ')}. Solo se aceptan JPG, PNG, PDF y Excel (.xls, .xlsx).`
         : null
     );
   };
@@ -171,12 +172,13 @@ export default function CreatePublicationModal({
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Archivos adjuntos (Imágenes JPG/PNG hasta 2 MB, PDF hasta 10 MB)
+            Archivos adjuntos (Imágenes JPG/PNG hasta 2 MB, PDF o Excel hasta 10 MB)
           </label>
           <input
             type="file"
             multiple
             onChange={handleFileChange}
+            accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx"
             className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
             disabled={loading}
           />
@@ -185,10 +187,19 @@ export default function CreatePublicationModal({
               {fileError}
             </p>
           )}
-          {files.length > 0 && !fileError && (
-            <p className="mt-1 text-xs text-slate-500">
-              {files.length} archivo(s) seleccionado(s)
-            </p>
+          {files.length > 0 && (
+            <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-medium text-slate-600">
+                {files.length} archivo(s) seleccionado(s)
+              </p>
+              <ul className="mt-2 space-y-1 text-xs text-slate-600">
+                {files.map((file) => (
+                  <li key={`${file.name}-${file.size}`} className="truncate">
+                    {file.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
 

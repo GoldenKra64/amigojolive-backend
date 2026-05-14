@@ -1,15 +1,21 @@
 const { ApiResponse } = require("../config/api.response");
 
 const MAX_IMAGE_SIZE_MB = 2;
-const MAX_PDF_SIZE_MB = 10;
+const MAX_DOCUMENT_SIZE_MB = 10;
 const MAX_IMAGES = 4;
-const MAX_PDFS = 1;
+const MAX_DOCUMENTS = 1;
+
+const DOCUMENT_MIME_TYPES = new Set([
+  "application/pdf",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+]);
 
 function validatePublicationFiles(req, res, next) {
   const files = req.files || [];
 
   const images = files.filter((f) => f.mimetype.startsWith("image/"));
-  const documents = files.filter((f) => f.mimetype === "application/pdf");
+  const documents = files.filter((f) => DOCUMENT_MIME_TYPES.has(f.mimetype));
 
   if (images.length > MAX_IMAGES) {
     return res
@@ -17,10 +23,10 @@ function validatePublicationFiles(req, res, next) {
       .json(new ApiResponse(false, 400, `Máximo ${MAX_IMAGES} imágenes por publicación`, {}));
   }
 
-  if (documents.length > MAX_PDFS) {
+  if (documents.length > MAX_DOCUMENTS) {
     return res
       .status(400)
-      .json(new ApiResponse(false, 400, `Máximo ${MAX_PDFS} PDF por publicación`, {}));
+      .json(new ApiResponse(false, 400, `Máximo ${MAX_DOCUMENTS} documento por publicación`, {}));
   }
 
   for (const image of images) {
@@ -38,13 +44,14 @@ function validatePublicationFiles(req, res, next) {
   }
 
   for (const doc of documents) {
-    const limitBytes = MAX_PDF_SIZE_MB * 1024 * 1024;
+    const limitBytes = MAX_DOCUMENT_SIZE_MB * 1024 * 1024;
     if (doc.size > limitBytes) {
+      const documentLabel = doc.mimetype === "application/pdf" ? "PDF" : "archivo Excel";
       return res.status(400).json(
         new ApiResponse(
           false,
           400,
-          `El PDF "${doc.originalname}" supera el límite de ${MAX_PDF_SIZE_MB} MB`,
+          `El ${documentLabel} "${doc.originalname}" supera el límite de ${MAX_DOCUMENT_SIZE_MB} MB`,
           {}
         )
       );

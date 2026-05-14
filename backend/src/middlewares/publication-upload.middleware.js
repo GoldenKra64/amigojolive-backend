@@ -5,6 +5,17 @@ const fs = require("fs");
 const imagePath = path.resolve(__dirname, "../../public/images");
 const documentPath = path.resolve(__dirname, "../../public/documents");
 
+const allowedImageTypes = [
+  "image/jpeg",
+  "image/png",
+];
+
+const allowedDocumentTypes = [
+  "application/pdf",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
+
 fs.mkdirSync(imagePath, { recursive: true });
 fs.mkdirSync(documentPath, { recursive: true });
 
@@ -16,10 +27,14 @@ function sanitizeFilename(name) {
     .trim();
 }
 
+function isDocumentMimeType(mimetype) {
+  return allowedDocumentTypes.includes(mimetype);
+}
+
 const storage = multer.diskStorage({
 
   destination(req, file, cb) {
-    if (file.mimetype === "application/pdf") {
+    if (isDocumentMimeType(file.mimetype)) {
       return cb(null, documentPath);
     }
     cb(null, imagePath);
@@ -41,19 +56,9 @@ const storage = multer.diskStorage({
 });
 
 function fileFilter(req, file, cb) {
-
-  const allowedImages = [
-    "image/jpeg",
-    "image/png",
-  ];
-
-  const allowedDocuments = [
-    "application/pdf",
-  ];
-
   const allowed = [
-    ...allowedImages,
-    ...allowedDocuments,
+    ...allowedImageTypes,
+    ...allowedDocumentTypes,
   ];
 
   if (!allowed.includes(file.mimetype)) {

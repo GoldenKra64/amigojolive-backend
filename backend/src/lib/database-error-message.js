@@ -1,8 +1,9 @@
 "use strict";
 
 const DB_HINT =
-  "Comprueba que PostgreSQL esté en ejecución (Docker Desktop encendido, luego desde la raíz del repo: `docker compose up -d postgres`). " +
-  "En `backend/`: `npm run prisma:deploy` y `npm run db:seed`. Revisa DATABASE_URL/DIRECT_URL en backend/.env (usuario por defecto: amigo / amigo_dev).";
+  "Comprueba la conexion PostgreSQL configurada en `backend/.env`. " +
+  "Si usas Supabase, revisa `DIRECT_URL` / `DATABASE_URL` (host, puerto, usuario, contrasena y base). " +
+  "Docker solo es necesario si quieres una base local.";
 
 /**
  * Mensaje corto para el cliente JSON (evita párrafos de stack de Prisma).
@@ -46,7 +47,7 @@ function publicMessageForDbError(error, rawMessage = "") {
       (/amigo/i.test(lower) ||
         /\bpostgres\b/i.test(lower));
 
-    return `${extra ? "Usuario o contraseña de PostgreSQL incorrectos para la URL actual. Si usa Docker con datos antiguos, pruebe: docker compose down -v ; docker compose up -d postgres. " : ""}${DB_HINT}`;
+    return `${extra ? "Usuario o contrasena de PostgreSQL incorrectos para la URL actual. " : ""}${DB_HINT}`;
   }
 
   if (/can't connect|connection refused/i.test(message)) {
