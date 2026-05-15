@@ -8,24 +8,13 @@ const envUrlRaw = (
 const baseURL =
   envUrlRaw && envUrlRaw.length > 0
     ? envUrlRaw
-    : import.meta.env.DEV
-      ? '/api/v1'
-      : 'http://localhost:3000/api/v1';
+    : '/api/v1';
 
 export function getPublicFilesBaseUrl(): string {
   if (envUrlRaw && envUrlRaw.length > 0) {
     return envUrlRaw.replace(/\/api\/v1\/?$/, '');
   }
-
-  if (import.meta.env.DEV) {
-    return '';
-  }
-
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-
-  return 'http://localhost:3000';
+  return '';
 }
 
 export const apiClient: AxiosInstance = axios.create({

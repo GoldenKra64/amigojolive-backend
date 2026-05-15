@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 
 const routes = require("./routes");
 const errorMiddleware = require("./middlewares/error.middleware");
@@ -8,6 +9,7 @@ const errorMiddleware = require("./middlewares/error.middleware");
 const app = express();
 
 const PUBLIC_DIR = path.resolve(__dirname, "../public");
+const FRONTEND_DIST = path.resolve(__dirname, "../../frontend/dist");
 
 app.use(cors());
 app.use(express.json());
@@ -25,12 +27,18 @@ app.use(
 
 app.use("/api/v1", routes);
 
-app.get("/", (req, res, next) => {
-  res.json({
-    message: "API AmigojoLive funcionando correctamente",
+const frontendExists = fs.existsSync(FRONTEND_DIST);
+
+if (frontendExists) {
+  app.use(express.static(FRONTEND_DIST));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(FRONTEND_DIST, "index.html"));
   });
-  next();
-});
+} else {
+  app.get("/", (req, res) => {
+    res.json({ message: "API AmigojoLive funcionando correctamente" });
+  });
+}
 
 app.use(errorMiddleware);
 
