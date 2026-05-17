@@ -2,22 +2,46 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const imagePath = path.join(process.cwd(), "public/images");
-const documentPath = path.join(process.cwd(), "public/documents");
+const imagePath = path.resolve(__dirname, "../../public/images");
+const documentPath = path.resolve(__dirname, "../../public/documents");
+
+const allowedImageTypes = [
+  "image/jpeg",
+  "image/png",
+];
+
+const allowedDocumentTypes = [
+  "application/pdf",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+];
 
 fs.mkdirSync(imagePath, { recursive: true });
 fs.mkdirSync(documentPath, { recursive: true });
 
+function sanitizeFilename(name) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._\- ]/g, "_")
+    .trim();
+}
+
+function isDocumentMimeType(mimetype) {
+  return allowedDocumentTypes.includes(mimetype);
+}
+
 const storage = multer.diskStorage({
 
   destination(req, file, cb) {
-    if (file.mimetype.startsWith("image/")) {
-      return cb(null, imagePath);
+    if (isDocumentMimeType(file.mimetype)) {
+      return cb(null, documentPath);
     }
     cb(null, documentPath);
   },
 
   filename(req, file, cb) {
+    file.originalname = sanitizeFilename(file.originalname);
 
     const unique =
       Date.now() +
@@ -32,24 +56,9 @@ const storage = multer.diskStorage({
 });
 
 function fileFilter(req, file, cb) {
-
-  const allowedImages = [
-    "image/jpeg",
-    "image/png",
-  ];
-
-  const allowedDocuments = [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/plain",
-  ];
-
   const allowed = [
-    ...allowedImages,
-    ...allowedDocuments,
+    ...allowedImageTypes,
+    ...allowedDocumentTypes,
   ];
 
   if (!allowed.includes(file.mimetype)) {

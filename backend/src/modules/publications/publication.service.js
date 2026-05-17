@@ -1,4 +1,9 @@
+const fs = require("fs");
+const path = require("path");
 const prisma = require("../../lib/prisma");
+const { mapCommentToResponse } = require("../comments/comment.service");
+
+const PUBLIC_DIR = path.resolve(__dirname, "../../../public");
 
 function mapPostToResponse(post) {
   const shouldHideAuthor = post.isAnonymous;
@@ -12,6 +17,7 @@ function mapPostToResponse(post) {
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     attachments: post.attachments,
+    comments: (post.comments ?? []).map(mapCommentToResponse),
     tags: post.tags ?? [],
     author: shouldHideAuthor
       ? {
@@ -65,6 +71,18 @@ async function createPublication({ title, content, isAnonymous, authorId, files 
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });
@@ -72,11 +90,14 @@ async function createPublication({ title, content, isAnonymous, authorId, files 
   return mapPostToResponse(post);
 }
 
-async function getPublicationFeed() {
+async function getPublicationFeed({ tagIds } = {}) {
   const posts = await prisma.post.findMany({
     where: {
       status: "PUBLISHED",
       deletedAt: null,
+      ...(tagIds && tagIds.length > 0 && {
+        tags: { some: { id: { in: tagIds } } },
+      }),
     },
     orderBy: {
       createdAt: "desc",
@@ -88,6 +109,18 @@ async function getPublicationFeed() {
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });
@@ -105,6 +138,18 @@ async function getPublicationById(id) {
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });
@@ -162,6 +207,18 @@ async function updatePublication(id, userId, data) {
         },
       },
       attachments: true,
+      comments: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          author: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      },
       tags: true,
     },
   });
@@ -203,10 +260,35 @@ async function deletePublication(id, user) {
   return { id: post.id, deletedAt: post.deletedAt };
 }
 
+async function getPublicationAttachments(postId) {
+  const post = await prisma.post.findUnique({ where: { id: postId } });
+
+  if (!post || post.deletedAt) {
+    const error = new Error("Publicación no encontrada");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const attachments = await prisma.postAttachment.findMany({
+    where: { postId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return attachments.map((att) => {
+    const folder = att.type === "IMAGE" ? "images" : "documents";
+    const diskPath = path.join(PUBLIC_DIR, folder, att.filename);
+    return {
+      ...att,
+      existsOnDisk: fs.existsSync(diskPath),
+    };
+  });
+}
+
 module.exports = {
   createPublication,
   getPublicationFeed,
   getPublicationById,
   updatePublication,
   deletePublication,
+  getPublicationAttachments,
 };
