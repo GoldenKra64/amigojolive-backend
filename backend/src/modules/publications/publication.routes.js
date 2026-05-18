@@ -16,7 +16,7 @@ const router = express.Router();
 router.post(
   "/",
   authMiddleware,
-  requireRole("docente", "admin"),
+  requireRole("docente", "admin", "moderador"),
   upload.array("files"),
   validatePublicationFiles,
   validateDto(createPublicationDto),
@@ -26,21 +26,21 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  requireRole("docente", "admin"),
+  requireRole("docente", "admin", "moderador"),
   publicationController.getPublicationFeed
 );
 
 router.get(
   "/:id",
   authMiddleware,
-  requireRole("docente", "admin"),
+  requireRole("docente", "admin", "moderador"),
   publicationController.getPublicationById
 );
 
 router.post(
   "/:id/comments",
   authMiddleware,
-  requireRole("docente", "admin"),
+  requireRole("docente", "admin", "moderador"),
   validateDto(createCommentDto),
   commentController.createComment
 );
@@ -48,7 +48,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  requireRole("docente", "admin"),
+  requireRole("docente", "admin", "moderador"),
   upload.array("files"),
   validatePublicationFiles,
   validateDto(updatePublicationDto),
@@ -58,14 +58,14 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  requireRole("docente", "admin"),
+  requireRole("docente", "admin", "moderador"),
   publicationController.deletePublication
 );
 
 router.get(
   "/:id/attachments",
   authMiddleware,
-  requireRole("docente", "admin"),
+  requireRole("docente", "admin", "moderador"),
   publicationController.getPublicationAttachments
 );
 

@@ -32,18 +32,33 @@ app.use(
   })
 );
 app.use(express.json());
+const imagesDir = path.resolve(__dirname, "../public/images");
+const documentsDir = path.resolve(__dirname, "../public/documents");
+
 app.use(
-  "/public",
-  express.static(PUBLIC_DIR, {
-    setHeaders(res, filePath) {
-      if (filePath.includes(`${path.sep}documents${path.sep}`) || filePath.includes('/documents/') || filePath.includes('\\documents\\')) {
-        const filename = path.basename(filePath);
-        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-      }
+  "/public/images",
+  express.static(imagesDir, {
+    setHeaders(res) {
       res.setHeader("Cache-Control", "public, max-age=86400");
     },
   })
 );
+
+app.use(
+  "/public/documents",
+  express.static(documentsDir, {
+    setHeaders(res, filePath) {
+      const filename = path.basename(filePath);
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader("Cache-Control", "public, max-age=86400");
+    },
+  })
+);
+
+// Capturar 404 para archivos públicos inexistentes en lugar de devolver index.html
+app.use("/public", (req, res) => {
+  res.status(404).send("Archivo no encontrado");
+});
 
 app.use("/api/v1", routes);
 

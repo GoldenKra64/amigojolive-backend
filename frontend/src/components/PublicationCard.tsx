@@ -99,6 +99,34 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
     }
   };
 
+  const handleDownloadFile = async (e: React.MouseEvent, url: string, filename: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        if (response.status === 404) {
+          error('El archivo ya no existe en el servidor.');
+        } else {
+          error('No se pudo descargar el archivo.');
+        }
+        return;
+      }
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      error('Error de red al intentar descargar el archivo.');
+    }
+  };
+
   return (
     <div
       className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
@@ -267,15 +295,24 @@ export default function PublicationCard({ pub, onDelete }: PublicationCardProps)
                           </p>
                         </div>
 
-                        <a
-                          href={fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          download={displayName}
-                          className="inline-flex shrink-0 items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
-                        >
-                          {isImage ? 'Abrir' : 'Descargar'}
-                        </a>
+                        {isImage ? (
+                          <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex shrink-0 items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Abrir
+                          </a>
+                        ) : (
+                          <button
+                            onClick={(e) => handleDownloadFile(e, fileUrl, displayName)}
+                            className="inline-flex shrink-0 items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                          >
+                            Descargar
+                          </button>
+                        )}
                       </div>
 
                       {isImage && (
